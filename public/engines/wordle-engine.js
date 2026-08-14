@@ -60,6 +60,7 @@
       ".pwe-key.pwe-correct { background: var(--pwe-correct); color: white; }",
       ".pwe-key.pwe-present { background: var(--pwe-present); color: white; }",
       ".pwe-key.pwe-absent { background: var(--pwe-absent); color: white; }",
+      ".pwe-key:focus-visible, .pwe-btn:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }",
       ".pwe-tooltip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 6px; background: var(--pwe-tooltip-bg); color: var(--pwe-tooltip-text); font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 10; pointer-events: none; }",
       ".pwe-tip-wrap:hover .pwe-tooltip { display: block; }",
       ".pwe-controls { display: flex; gap: 8px; }",
@@ -128,6 +129,7 @@
 
     var messageEl = document.createElement("p");
     messageEl.className = "pwe-message";
+    messageEl.setAttribute("aria-live", "polite");
 
     var keyboardEl = document.createElement("div");
     keyboardEl.className = "pwe-keyboard";
@@ -175,6 +177,9 @@
           var status = statuses[col];
           cell.className = "pwe-cell" + (status ? " pwe-" + status : phoneme ? " pwe-filled" : "");
           cell.textContent = phoneme || "";
+          if (phoneme) {
+            cell.setAttribute("aria-label", phoneme + (status ? ", " + status : ""));
+          }
           rowEl.appendChild(cell);
         }
         gridEl.appendChild(rowEl);
@@ -198,12 +203,18 @@
           key.textContent = symbol;
           var status = statuses[symbol];
           key.className = "pwe-key" + (status ? " pwe-" + status : "");
+
+          var label = labels[symbol];
+          key.setAttribute(
+            "aria-label",
+            symbol + (label ? ", " + label.letters + " as in " + label.example : "") + (status ? ", " + status : ""),
+          );
+
           key.addEventListener("click", function () {
             pressKey(symbol);
           });
           wrap.appendChild(key);
 
-          var label = labels[symbol];
           if (label) {
             var tooltip = document.createElement("div");
             tooltip.className = "pwe-tooltip";

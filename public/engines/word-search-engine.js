@@ -41,23 +41,34 @@
       "  --pws-tooltip-text: #18181b;",
       "}",
       ".pws-root { display: flex; flex-direction: column; align-items: center; gap: 16px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }",
+      ".pws-instructions { font-size: 0.85rem; color: #64748b; text-align: center; max-width: 30em; }",
       ".pws-message { min-height: 24px; font-weight: 600; text-align: center; color: var(--pws-found-border); }",
-      ".pws-grid { display: grid; gap: 3px; touch-action: none; }",
+      ".pws-grid-scroll { max-width: 100%; overflow-x: auto; }",
+      ".pws-grid { display: flex; flex-direction: column; gap: 3px; touch-action: none; }",
+      ".pws-row { display: flex; gap: 3px; }",
       ".pws-tip-wrap { position: relative; display: inline-block; }",
-      ".pws-cell { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 600; font-size: 0.85rem; user-select: none; cursor: pointer; border: 1px solid var(--pws-cell-border); background: var(--pws-cell-bg); color: var(--pws-cell-text); }",
+      ".pws-cell { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 4px; font-weight: 600; font-size: 0.85rem; user-select: none; cursor: pointer; border: 1px solid var(--pws-cell-border); background: var(--pws-cell-bg); color: var(--pws-cell-text); font-family: inherit; padding: 0; }",
       ".pws-cell.pws-highlighted { background: var(--pws-highlight); color: var(--pws-highlight-text); }",
       ".pws-cell.pws-found { background: var(--pws-found); border-color: var(--pws-found-border); color: var(--pws-found-text); }",
+      ".pws-cell:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }",
       ".pws-tooltip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 6px; background: var(--pws-tooltip-bg); color: var(--pws-tooltip-text); font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 10; pointer-events: none; }",
       ".pws-tip-wrap:hover .pws-tooltip { display: block; }",
       ".pws-word-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }",
       ".pws-chip { padding: 6px 12px; border-radius: 6px; font-weight: 500; font-size: 0.9rem; background: var(--pws-chip-bg); color: var(--pws-cell-text); }",
       ".pws-chip.pws-found { background: var(--pws-found); color: var(--pws-found-text); text-decoration: line-through; }",
+      "@media (max-width: 420px) {",
+      "  .pws-cell { width: 28px; height: 28px; font-size: 0.75rem; }",
+      "}",
     ].join("\n");
     document.head.appendChild(style);
   }
 
   function cellKey(r, c) {
     return r + "," + c;
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
   }
 
   function getPath(start, end) {
@@ -95,28 +106,46 @@
     var grid = options.grid;
     var words = options.words;
     var labels = options.labels || {};
+    var rows = grid.length;
+    var cols = grid[0].length;
 
     var isSelecting = false;
+    var keyboardSelecting = false;
     var startCell = null;
     var highlighted = [];
     var foundWords = [];
     var foundCells = {};
+    var focusedCell = { row: 0, col: 0 };
 
     container.innerHTML = "";
     var root = document.createElement("div");
     root.className = "pws-root";
 
+    var instructionsEl = document.createElement("p");
+    instructionsEl.className = "pws-instructions";
+    instructionsEl.textContent =
+      "Drag across phonemes to find each word, or use arrow keys to move and Enter to start or finish a selection.";
+
     var messageEl = document.createElement("p");
     messageEl.className = "pws-message";
+    messageEl.setAttribute("aria-live", "polite");
+
+    var scrollWrap = document.createElement("div");
+    scrollWrap.className = "pws-grid-scroll";
 
     var gridEl = document.createElement("div");
     gridEl.className = "pws-grid";
-    gridEl.style.gridTemplateColumns = "repeat(" + grid[0].length + ", 36px)";
+    gridEl.setAttribute("role", "grid");
+    gridEl.setAttribute("aria-label", "Word search puzzle grid");
+    gridEl.setAttribute("aria-rowcount", String(rows));
+    gridEl.setAttribute("aria-colcount", String(cols));
+    scrollWrap.appendChild(gridEl);
 
     var listEl = document.createElement("div");
     listEl.className = "pws-word-list";
 
-    root.appendChild(gridEl);
+    root.appendChild(instructionsEl);
+    root.appendChild(scrollWrap);
     root.appendChild(messageEl);
     root.appendChild(listEl);
     container.appendChild(root);
@@ -125,20 +154,37 @@
       gridEl.innerHTML = "";
       var highlightedKeys = highlighted.map(function (p) { return cellKey(p.row, p.col); });
 
-      for (var r = 0; r < grid.length; r++) {
-        for (var c = 0; c < grid[r].length; c++) {
+      for (var r = 0; r < rows; r++) {
+        var rowEl = document.createElement("div");
+        rowEl.className = "pws-row";
+        rowEl.setAttribute("role", "row");
+
+        for (var c = 0; c < cols; c++) {
           var wrap = document.createElement("div");
           wrap.className = "pws-tip-wrap";
 
-          var cell = document.createElement("div");
           var phoneme = grid[r][c];
           var k = cellKey(r, c);
+          var isFound = !!foundCells[k];
+          var isHighlighted = highlightedKeys.indexOf(k) !== -1;
+          var isFocusTarget = r === focusedCell.row && c === focusedCell.col;
+          var label = labels[phoneme];
+
+          var cell = document.createElement("button");
+          cell.type = "button";
           cell.textContent = phoneme;
           cell.dataset.row = String(r);
           cell.dataset.col = String(c);
-          cell.className =
-            "pws-cell" +
-            (foundCells[k] ? " pws-found" : highlightedKeys.indexOf(k) !== -1 ? " pws-highlighted" : "");
+          cell.className = "pws-cell" + (isFound ? " pws-found" : isHighlighted ? " pws-highlighted" : "");
+          cell.setAttribute("role", "gridcell");
+          cell.setAttribute("aria-rowindex", String(r + 1));
+          cell.setAttribute("aria-colindex", String(c + 1));
+          cell.setAttribute("aria-selected", String(isFound || isHighlighted));
+          cell.setAttribute(
+            "aria-label",
+            phoneme + (label ? ", " + label.letters + " as in " + label.example : ""),
+          );
+          cell.tabIndex = isFocusTarget ? 0 : -1;
 
           cell.addEventListener("mousedown", makeBeginHandler(r, c));
           cell.addEventListener("mouseenter", makeExtendHandler(r, c));
@@ -146,7 +192,6 @@
 
           wrap.appendChild(cell);
 
-          var label = labels[phoneme];
           if (label) {
             var tooltip = document.createElement("div");
             tooltip.className = "pws-tooltip";
@@ -154,9 +199,17 @@
             wrap.appendChild(tooltip);
           }
 
-          gridEl.appendChild(wrap);
+          rowEl.appendChild(wrap);
         }
+        gridEl.appendChild(rowEl);
       }
+    }
+
+    function focusCurrentCell() {
+      var el = gridEl.querySelector(
+        '[data-row="' + focusedCell.row + '"][data-col="' + focusedCell.col + '"]',
+      );
+      if (el) el.focus({ preventScroll: true });
     }
 
     function makeBeginHandler(r, c) {
@@ -186,6 +239,7 @@
       isSelecting = true;
       startCell = { row: r, col: c };
       highlighted = [{ row: r, col: c }];
+      focusedCell = { row: r, col: c };
       renderGrid();
     }
 
@@ -194,6 +248,7 @@
       var path = getPath(startCell, { row: r, col: c });
       if (path) {
         highlighted = path;
+        focusedCell = { row: r, col: c };
         renderGrid();
       }
     }
@@ -206,6 +261,8 @@
           highlighted.forEach(function (p) {
             foundCells[cellKey(p.row, p.col)] = true;
           });
+          messageEl.textContent =
+            foundWords.length === words.length ? "Found every word!" : "Found " + match + "!";
         }
       }
       isSelecting = false;
@@ -213,9 +270,6 @@
       highlighted = [];
       renderGrid();
       renderWordList();
-      if (foundWords.length === words.length) {
-        messageEl.textContent = "Found every word!";
-      }
     }
 
     function cellFromPoint(x, y) {
@@ -230,9 +284,58 @@
       if (cell) extendSelection(cell.row, cell.col);
     }
 
+    function moveFocus(dr, dc) {
+      var next = {
+        row: clamp(focusedCell.row + dr, 0, rows - 1),
+        col: clamp(focusedCell.col + dc, 0, cols - 1),
+      };
+      focusedCell = next;
+      if (keyboardSelecting && startCell) {
+        var path = getPath(startCell, next);
+        if (path) highlighted = path;
+      }
+      renderGrid();
+      focusCurrentCell();
+    }
+
+    function handleGridKeyDown(e) {
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        moveFocus(-1, 0);
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        moveFocus(1, 0);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        moveFocus(0, -1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        moveFocus(0, 1);
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        if (keyboardSelecting) {
+          keyboardSelecting = false;
+          endSelection();
+        } else {
+          keyboardSelecting = true;
+          beginSelection(focusedCell.row, focusedCell.col);
+        }
+        focusCurrentCell();
+      } else if (e.key === "Escape" && keyboardSelecting) {
+        e.preventDefault();
+        keyboardSelecting = false;
+        isSelecting = false;
+        startCell = null;
+        highlighted = [];
+        renderGrid();
+        focusCurrentCell();
+      }
+    }
+
     window.addEventListener("mouseup", endSelection);
     gridEl.addEventListener("touchend", endSelection);
     gridEl.addEventListener("touchmove", handleTouchMove);
+    gridEl.addEventListener("keydown", handleGridKeyDown);
 
     renderGrid();
     renderWordList();

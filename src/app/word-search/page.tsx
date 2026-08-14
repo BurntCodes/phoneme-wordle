@@ -11,7 +11,7 @@ export default function WordSearchPage() {
           Word Search Builder
         </h2>
         <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-          Drag across phonemes to find each word. Hover a cell to see its
+          Find the five hidden phoneme words. Hover a cell to see its
           English letter equivalent.
         </p>
       </div>
