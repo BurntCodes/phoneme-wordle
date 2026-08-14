@@ -96,39 +96,3 @@ export function buildPuzzle(
 
   return { grid: filledGrid, placements };
 }
-
-export function getPath(start: Coord, end: Coord): Coord[] | null {
-  const dr = end.row - start.row;
-  const dc = end.col - start.col;
-  const isStraightLine = dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc);
-  if (!isStraightLine) return null;
-
-  const steps = Math.max(Math.abs(dr), Math.abs(dc));
-  const stepR = steps === 0 ? 0 : dr / steps;
-  const stepC = steps === 0 ? 0 : dc / steps;
-
-  return Array.from({ length: steps + 1 }, (_, i) => ({
-    row: start.row + stepR * i,
-    col: start.col + stepC * i,
-  }));
-}
-
-export function matchWord(
-  path: Coord[],
-  grid: string[][],
-  words: PhonemeWord[],
-  foundWords: Set<string>,
-): string | null {
-  const forward = path.map(({ row, col }) => grid[row][col]).join("");
-  const backward = [...path]
-    .reverse()
-    .map(({ row, col }) => grid[row][col])
-    .join("");
-
-  for (const word of words) {
-    if (foundWords.has(word.word)) continue;
-    const key = word.phonemes.join("");
-    if (key === forward || key === backward) return word.word;
-  }
-  return null;
-}
