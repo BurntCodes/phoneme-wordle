@@ -1,4 +1,4 @@
-# Phoneme Wordle Builder
+# Phoneme Word Games
 
 A builder for phoneme-based Wordle and Word Search classroom activities, aimed at Speech Pathology students and teachers. Teachers configure an activity, preview it, and generate a standalone HTML file that plays in any browser — no server, no dependencies.
 
