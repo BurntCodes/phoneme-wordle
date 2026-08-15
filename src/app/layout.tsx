@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Phoneme Wordle Builder",
-    template: "%s · Phoneme Wordle Builder",
+    default: "Phoneme Word Games",
+    template: "%s · Phoneme Word Games",
   },
   description:
     "A phoneme-based Wordle and Word Search builder for Speech Pathology classroom activities.",
