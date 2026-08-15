@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Phoneme Wordle Builder
 
-## Getting Started
+A builder for phoneme-based Wordle and Word Search classroom activities, aimed at Speech Pathology students and teachers. Teachers configure an activity, preview it, and generate a standalone HTML file that plays in any browser — no server, no dependencies.
 
-First, run the development server:
+Built for CSE3CWA, Assessment 1 (frontend design and usability).
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) (or whichever port the terminal prints, if 3000 is already in use).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+- `src/app/` — routes: Home, About, Wordle, Word Search, Settings
+- `src/components/` — layout (Header/NavBar/Footer), theme toggle, and thin React "host" wrappers for each game
+- `src/lib/` — phoneme corpus data, game logic (word selection, puzzle generation), and the HTML export generators
+- `public/engines/` — the actual Wordle and Word Search game engines: plain JavaScript, no imports, no build step
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Why the games live in `public/engines/` instead of as React components
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The "Generate HTML" button has to produce a single, fully standalone `.html` file — no React runtime, no bundler, works offline by double-clicking it. Rather than maintaining two implementations of each game (one in JSX for the live preview, one hand-ported to vanilla JS for the export — which could silently drift apart), each game's actual logic and rendering lives in exactly one place: a plain-JS "engine" in `public/engines/`. The live app loads and mounts that same file via a thin React host component (`useRef` + `useEffect`), and the export function fetches that same file's own text and inlines it verbatim into the generated document. One implementation, two consumers, no duplication.
 
-## Deploy on Vercel
+## Building
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run build
+npm run lint
+```
