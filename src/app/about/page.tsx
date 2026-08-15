@@ -43,7 +43,14 @@ export default function AboutPage() {
         <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
           Walkthrough video
         </h3>
-        <p className="text-zinc-600 dark:text-zinc-400">Video link goes here.</p>
+        <a
+          href="https://youtu.be/Qs3uWPflVEo"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-zinc-900 underline underline-offset-2 hover:text-zinc-600 dark:text-zinc-50 dark:hover:text-zinc-300"
+        >
+          Watch the walkthrough on YouTube
+        </a>
       </section>
 
       <section className="space-y-1 text-sm text-zinc-500 dark:text-zinc-400">
