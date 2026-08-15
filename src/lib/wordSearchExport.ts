@@ -8,7 +8,7 @@ export async function generateWordSearchHtml(puzzle: WordSearchPuzzle): Promise<
   const engineSrc = await fetch(ENGINE_SRC).then((res) => res.text());
 
   const bodyHtml = `
-<h1>Phoneme Word Search</h1>
+<h1>Phoneme Word Games</h1>
 <p class="subtitle">Drag across phonemes to find each word. Hover a cell to see its English letter equivalent.</p>
 <div id="root"></div>
 `;
@@ -22,7 +22,7 @@ window.PhonemeWordSearchEngine.mount(document.getElementById("root"), {
 `;
 
   return buildHtmlDocument({
-    title: "Phoneme Word Search",
+    title: "Word Search · Phoneme Word Games",
     bodyHtml,
     script: `${engineSrc}\n${mountCall}`,
   });

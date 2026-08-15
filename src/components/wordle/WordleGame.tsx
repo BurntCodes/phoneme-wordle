@@ -18,7 +18,7 @@ export default function WordleGame() {
     const target = targetRef.current;
     if (!target) return;
     const html = await generateWordleHtml(target);
-    downloadHtmlFile(`phoneme-wordle-${target.word}.html`, html);
+    downloadHtmlFile("phoneme-wordle.html", html);
   }
 
   return (

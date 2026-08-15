@@ -8,7 +8,7 @@ export async function generateWordleHtml(target: PhonemeWord): Promise<string> {
   const engineSrc = await fetch(ENGINE_SRC).then((res) => res.text());
 
   const bodyHtml = `
-<h1>Phoneme Wordle</h1>
+<h1>Phoneme Word Games</h1>
 <p class="subtitle">Guess the phoneme word. Hover a key to see its English letter equivalent.</p>
 <div id="root"></div>
 `;
@@ -24,7 +24,7 @@ window.PhonemeWordleEngine.mount(document.getElementById("root"), {
 `;
 
   return buildHtmlDocument({
-    title: `Phoneme Wordle — ${target.word}`,
+    title: "Wordle · Phoneme Word Games",
     bodyHtml,
     script: `${engineSrc}\n${mountCall}`,
   });
