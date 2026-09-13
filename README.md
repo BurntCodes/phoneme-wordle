@@ -2,7 +2,7 @@
 
 A builder for phoneme-based Wordle and Word Search classroom activities, aimed at Speech Pathology students and teachers. Teachers configure an activity, preview it, and generate a standalone HTML file that plays in any browser — no server, no dependencies.
 
-Built for CSE3CWA, Assessment 1 (frontend design and usability).
+Built for CSE3CWA. Assessment 1 delivered the frontend-only builder; Assessment 2 is adding the backend and database layer so activity data is stored rather than hardcoded.
 
 ## Getting started
 
@@ -15,7 +15,18 @@ Open [http://localhost:3000](http://localhost:3000) (or whichever port the termi
 
 ## Stack
 
-Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4
+Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 · PostgreSQL via Prisma
+
+## Database (local dev)
+
+The schema and migrations are in place; the live app still reads from the hardcoded data in `src/lib/` for now (that wiring is a later piece of work).
+
+```bash
+cp .env.example .env   # first time only
+npm run db:up          # starts Postgres via Docker Compose
+npm run db:migrate      # applies the Prisma schema
+npm run db:studio       # optional: browse the database at http://localhost:5555
+```
 
 ## Project structure
 
