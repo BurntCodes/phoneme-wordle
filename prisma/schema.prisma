@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum PhonemeCategory {
+  CONSONANT
+  VOWEL
+}
+
+enum PhonemeSubgroup {
+  VOICELESS_STOPS
+  VOICED_STOPS
+  NASALS
+  VOICELESS_FRICATIVES
+  VOICED_FRICATIVES
+  AFFRICATES
+  APPROXIMANTS
+  MONOPHTHONGS
+  DIPHTHONGS
+  SCHWA
+}
+
+enum ActivityType {
+  WORDLE
+  WORD_SEARCH
+}
+
+// Fixed IPA phoneme inventory (HCE Australian English corpus). Reference
+// data, not teacher content — seeded once, validated against by WordPhoneme.
+model Phoneme {
+  symbol       String          @id
+  letters      String
+  example      String
+  category     PhonemeCategory
+  subgroup     PhonemeSubgroup
+  displayOrder Int
+
+  wordPhonemes WordPhoneme[]
+
+  @@index([category, subgroup, displayOrder])
+}
+
+model WordList {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  words      Word[]
+  activities Activity[]
+}
+
+model Word {
+  id         String @id @default(cuid())
+  text       String
+  wordListId String
+
+  wordList WordList      @relation(fields: [wordListId], references: [id], onDelete: Cascade)
+  phonemes WordPhoneme[]
+
+  @@unique([wordListId, text])
+  @@index([wordListId])
+}
+
+// Ordered phoneme sequence per word. A join table rather than a native
+// Postgres array column: Postgres can't place a foreign-key constraint on
+// individual array elements, and validating each phoneme against the known
+// Phoneme inventory requires exactly that.
+model WordPhoneme {
+  id            String @id @default(cuid())
+  wordId        String
+  phonemeSymbol String
+  position      Int
+
+  word    Word    @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  phoneme Phoneme @relation(fields: [phonemeSymbol], references: [symbol], onDelete: Restrict)
+
+  @@unique([wordId, position])
+  @@index([wordId])
+  @@index([phonemeSymbol])
+}
+
+model Activity {
+  id           String       @id @default(cuid())
+  name         String
+  type         ActivityType
+  wordListId   String
+  difficulty   Int?
+  maxGuesses   Int?
+  gridRows     Int?
+  gridCols     Int?
+  hintsEnabled Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  wordList WordList @relation(fields: [wordListId], references: [id], onDelete: Restrict)
+
+  @@index([wordListId])
+  @@index([type])
+}
