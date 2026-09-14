@@ -25,6 +25,7 @@ The schema and migrations are in place; the live app still reads from the hardco
 cp .env.example .env   # first time only
 npm run db:up          # starts Postgres via Docker Compose
 npm run db:migrate      # applies the Prisma schema
+npm run db:seed         # populates it with the current word/phoneme data
 npm run db:studio       # optional: browse the database at http://localhost:5555
 ```
 
