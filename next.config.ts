@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Traces only the files actually needed at runtime into .next/standalone —
+  // required for the Dockerfile's minimal runner stage.
+  output: "standalone",
 };
 
 export default nextConfig;
