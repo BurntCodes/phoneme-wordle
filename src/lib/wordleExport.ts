@@ -1,10 +1,19 @@
-import { CONSONANT_GROUPS, VOWEL_GROUPS, PHONEME_LABELS, type PhonemeWord } from "@/lib/phonemes";
 import { buildHtmlDocument } from "@/lib/htmlExport";
-import { MAX_GUESSES } from "@/lib/wordle";
 
 const ENGINE_SRC = "/engines/wordle-engine.js";
 
-export async function generateWordleHtml(target: PhonemeWord): Promise<string> {
+export interface WordleMountOptions {
+  target: { word: string; phonemes: string[] };
+  labels: Record<string, { letters: string; example: string }>;
+  consonantRows: string[][];
+  vowelRows: string[][];
+  maxGuesses: number;
+}
+
+// Takes the exact object passed to window.PhonemeWordleEngine.mount() in the
+// live preview and serializes it verbatim — the generated file's data is
+// guaranteed to match what was on screen, not just the engine code.
+export async function generateWordleHtml(options: WordleMountOptions): Promise<string> {
   const engineSrc = await fetch(ENGINE_SRC).then((res) => res.text());
 
   const bodyHtml = `
@@ -14,13 +23,7 @@ export async function generateWordleHtml(target: PhonemeWord): Promise<string> {
 `;
 
   const mountCall = `
-window.PhonemeWordleEngine.mount(document.getElementById("root"), {
-  target: ${JSON.stringify(target)},
-  labels: ${JSON.stringify(PHONEME_LABELS)},
-  consonantRows: ${JSON.stringify(Object.values(CONSONANT_GROUPS))},
-  vowelRows: ${JSON.stringify(Object.values(VOWEL_GROUPS))},
-  maxGuesses: ${MAX_GUESSES}
-});
+window.PhonemeWordleEngine.mount(document.getElementById("root"), ${JSON.stringify(options)});
 `;
 
   return buildHtmlDocument({
