@@ -19,6 +19,23 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: phoneme-wordle-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Points at the `db` service's hostname on the compose network, not
+      # localhost — that's only correct for the app running on the host
+      # (see .env.example, used by `npm run dev`).
+      DATABASE_URL: postgresql://${POSTGRES_USER:-phoneme_wordle}:${POSTGRES_PASSWORD:-phoneme_wordle_dev}@db:5432/${POSTGRES_DB:-phoneme_wordle}?schema=public
+    ports:
+      - "${APP_PORT:-3000}:3000"
+
 volumes:
   phoneme_wordle_pgdata:
     name: phoneme-wordle-pgdata

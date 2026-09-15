@@ -29,6 +29,19 @@ npm run db:seed         # populates it with the current word/phoneme data
 npm run db:studio       # optional: browse the database at http://localhost:5555
 ```
 
+## Running with Docker
+
+`docker-compose.yml` also has an `app` service (the Next.js app itself, built from the root `Dockerfile` using `output: "standalone"` for a minimal runtime image) alongside `db`.
+
+```bash
+cp .env.example .env   # first time only
+docker compose up -d --build
+npm run db:migrate      # migrations run against the container from the host, same as local dev
+npm run db:seed
+```
+
+The app is then reachable at [http://localhost:3000](http://localhost:3000) (override with `APP_PORT` in `.env` if that port is taken, the same way `POSTGRES_PORT` overrides Postgres's).
+
 ## Project structure
 
 - `src/app/` — routes: Home, About, Wordle, Word Search, Settings
