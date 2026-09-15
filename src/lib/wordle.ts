@@ -1,8 +1,3 @@
-import { PHONEME_WORDS, type PhonemeWord } from "@/lib/phonemes";
-
+// Still used by prisma/seed.ts as the default maxGuesses for seeded Wordle
+// activities — the live app now reads maxGuesses per-activity from the API.
 export const MAX_GUESSES = 6;
-
-export function pickRandomWord(length: number): PhonemeWord {
-  const candidates = PHONEME_WORDS.filter((w) => w.phonemes.length === length);
-  return candidates[Math.floor(Math.random() * candidates.length)];
-}
