@@ -1,26 +1,63 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import WordSearchHost from "./WordSearchHost";
-import { generateWordSearchHtml } from "@/lib/wordSearchExport";
+import { fetchActivities, type ApiActivity } from "@/lib/api/client";
+import { generateWordSearchHtml, type WordSearchMountOptions } from "@/lib/wordSearchExport";
 import { downloadHtmlFile } from "@/lib/htmlExport";
-import type { WordSearchPuzzle } from "@/lib/wordSearch";
 
 export default function WordSearchGame() {
+  const [activities, setActivities] = useState<ApiActivity[] | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [round, setRound] = useState(0);
-  const puzzleRef = useRef<WordSearchPuzzle | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const optionsRef = useRef<WordSearchMountOptions | null>(null);
+
+  useEffect(() => {
+    fetchActivities("WORD_SEARCH")
+      .then((list) => {
+        setActivities(list);
+        setSelectedId((current) => current ?? list[0]?.id ?? null);
+      })
+      .catch((err) => setLoadError(err instanceof Error ? err.message : "Failed to load activities"));
+  }, []);
 
   async function handleGenerate() {
-    const puzzle = puzzleRef.current;
-    if (!puzzle) return;
-    const html = await generateWordSearchHtml(puzzle);
+    const options = optionsRef.current;
+    if (!options) return;
+    const html = await generateWordSearchHtml(options);
     downloadHtmlFile("phoneme-word-search.html", html);
+  }
+
+  if (loadError) {
+    return <p role="alert" className="text-red-600 dark:text-red-400">{loadError}</p>;
+  }
+
+  if (!activities) {
+    return <p className="text-zinc-500 dark:text-zinc-400">Loading activities…</p>;
+  }
+
+  if (activities.length === 0 || !selectedId) {
+    return <p className="text-zinc-500 dark:text-zinc-400">No Word Search activities configured yet.</p>;
   }
 
   return (
     <div className="flex flex-col items-center gap-6">
-      <WordSearchHost round={round} puzzleRef={puzzleRef} />
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-2">
+        {activities.map((activity) => (
+          <button
+            key={activity.id}
+            type="button"
+            onClick={() => setSelectedId(activity.id)}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+              selectedId === activity.id
+                ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+                : "border border-zinc-200 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            }`}
+          >
+            {activity.name}
+          </button>
+        ))}
         <button
           type="button"
           onClick={() => setRound((r) => r + 1)}
@@ -36,6 +73,8 @@ export default function WordSearchGame() {
           Generate HTML
         </button>
       </div>
+
+      <WordSearchHost activityId={selectedId} round={round} optionsRef={optionsRef} />
     </div>
   );
 }
