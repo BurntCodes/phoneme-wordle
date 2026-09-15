@@ -2,6 +2,11 @@
 // sourced from the unit's phoneme corpus. The corpus mixes U+0067 "g" and the
 // IPA-correct U+0261 "ɡ" for the same phoneme; every symbol below is normalized
 // to U+0261.
+//
+// This is now only prisma/seed.ts's source of truth, not the live app's —
+// the frontend reads phoneme/word data from the database via /api/* once
+// seeded. Interfaces (PhonemeLabel, PhonemeWord) are still imported for
+// their types elsewhere.
 
 export interface PhonemeLabel {
   letters: string

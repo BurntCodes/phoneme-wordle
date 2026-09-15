@@ -1,10 +1,16 @@
-import { PHONEME_LABELS } from "@/lib/phonemes";
 import { buildHtmlDocument } from "@/lib/htmlExport";
-import { WORD_SEARCH_WORDS, type WordSearchPuzzle } from "@/lib/wordSearch";
 
 const ENGINE_SRC = "/engines/word-search-engine.js";
 
-export async function generateWordSearchHtml(puzzle: WordSearchPuzzle): Promise<string> {
+export interface WordSearchMountOptions {
+  grid: string[][];
+  words: { word: string; phonemes: string[] }[];
+  labels: Record<string, { letters: string; example: string }>;
+}
+
+// Same rationale as wordleExport.ts: serialize the exact object the live
+// preview mounted, so the export can never drift from what was on screen.
+export async function generateWordSearchHtml(options: WordSearchMountOptions): Promise<string> {
   const engineSrc = await fetch(ENGINE_SRC).then((res) => res.text());
 
   const bodyHtml = `
@@ -14,11 +20,7 @@ export async function generateWordSearchHtml(puzzle: WordSearchPuzzle): Promise<
 `;
 
   const mountCall = `
-window.PhonemeWordSearchEngine.mount(document.getElementById("root"), {
-  grid: ${JSON.stringify(puzzle.grid)},
-  words: ${JSON.stringify(WORD_SEARCH_WORDS)},
-  labels: ${JSON.stringify(PHONEME_LABELS)}
-});
+window.PhonemeWordSearchEngine.mount(document.getElementById("root"), ${JSON.stringify(options)});
 `;
 
   return buildHtmlDocument({

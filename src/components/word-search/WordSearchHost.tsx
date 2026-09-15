@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
-import { PHONEME_LABELS } from "@/lib/phonemes";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { loadEngineScript } from "@/lib/loadEngineScript";
-import { buildPuzzle, WORD_SEARCH_WORDS, type WordSearchPuzzle } from "@/lib/wordSearch";
+import { fetchActivity, fetchWordList, fetchPhonemes, orderedPhonemes } from "@/lib/api/client";
+import { buildKeyboardRows } from "@/lib/phonemeShape";
+import { buildPuzzle } from "@/lib/wordSearch";
+import type { WordSearchMountOptions } from "@/lib/wordSearchExport";
 
 interface EngineHandle {
   destroy: () => void;
@@ -18,37 +20,60 @@ declare global {
 }
 
 const ENGINE_SRC = "/engines/word-search-engine.js";
-const GRID_SIZE = 10;
+const DEFAULT_GRID_SIZE = 10;
 
 export default function WordSearchHost({
+  activityId,
   round,
-  puzzleRef,
+  optionsRef,
 }: {
+  activityId: string;
   round: number;
-  puzzleRef: RefObject<WordSearchPuzzle | null>;
+  optionsRef: RefObject<WordSearchMountOptions | null>;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let handle: EngineHandle | null = null;
     let cancelled = false;
 
-    loadEngineScript(ENGINE_SRC).then(() => {
-      if (cancelled || !containerRef.current || !window.PhonemeWordSearchEngine) return;
-      const puzzle = buildPuzzle(WORD_SEARCH_WORDS, GRID_SIZE, GRID_SIZE);
-      puzzleRef.current = puzzle;
-      handle = window.PhonemeWordSearchEngine.mount(containerRef.current, {
-        grid: puzzle.grid,
-        words: WORD_SEARCH_WORDS,
-        labels: PHONEME_LABELS,
-      });
-    });
+    (async () => {
+      setError(null);
+      try {
+        const [activity, phonemes] = await Promise.all([fetchActivity(activityId), fetchPhonemes()]);
+        const wordList = await fetchWordList(activity.wordListId);
+        const words = wordList.words.map((w) => ({ word: w.text, phonemes: orderedPhonemes(w) }));
+        if (words.length === 0) {
+          throw new Error(`"${wordList.name}" has no words`);
+        }
+
+        const puzzle = buildPuzzle(
+          words,
+          activity.gridRows ?? DEFAULT_GRID_SIZE,
+          activity.gridCols ?? DEFAULT_GRID_SIZE,
+        );
+        const { labels } = buildKeyboardRows(phonemes);
+        const options: WordSearchMountOptions = { grid: puzzle.grid, words, labels };
+
+        await loadEngineScript(ENGINE_SRC);
+        if (cancelled || !containerRef.current || !window.PhonemeWordSearchEngine) return;
+
+        optionsRef.current = options;
+        handle = window.PhonemeWordSearchEngine.mount(containerRef.current, options);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load activity");
+      }
+    })();
 
     return () => {
       cancelled = true;
       handle?.destroy();
     };
-  }, [round, puzzleRef]);
+  }, [activityId, round, optionsRef]);
 
+  if (error) {
+    return <p role="alert" className="text-red-600 dark:text-red-400">{error}</p>;
+  }
   return <div ref={containerRef} />;
 }
