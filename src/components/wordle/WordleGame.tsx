@@ -1,41 +1,61 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import WordleHost from "./WordleHost";
-import { MAX_GUESSES } from "@/lib/wordle";
-import { generateWordleHtml } from "@/lib/wordleExport";
+import { fetchActivities, type ApiActivity } from "@/lib/api/client";
+import { generateWordleHtml, type WordleMountOptions } from "@/lib/wordleExport";
 import { downloadHtmlFile } from "@/lib/htmlExport";
-import type { PhonemeWord } from "@/lib/phonemes";
-
-const DIFFICULTIES = [3, 4, 5] as const;
 
 export default function WordleGame() {
-  const [difficulty, setDifficulty] = useState<(typeof DIFFICULTIES)[number]>(3);
+  const [activities, setActivities] = useState<ApiActivity[] | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [round, setRound] = useState(0);
-  const targetRef = useRef<PhonemeWord | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const optionsRef = useRef<WordleMountOptions | null>(null);
+
+  useEffect(() => {
+    fetchActivities("WORDLE")
+      .then((list) => {
+        setActivities(list);
+        setSelectedId((current) => current ?? list[0]?.id ?? null);
+      })
+      .catch((err) => setLoadError(err instanceof Error ? err.message : "Failed to load activities"));
+  }, []);
 
   async function handleGenerate() {
-    const target = targetRef.current;
-    if (!target) return;
-    const html = await generateWordleHtml(target);
+    const options = optionsRef.current;
+    if (!options) return;
+    const html = await generateWordleHtml(options);
     downloadHtmlFile("phoneme-wordle.html", html);
+  }
+
+  if (loadError) {
+    return <p role="alert" className="text-red-600 dark:text-red-400">{loadError}</p>;
+  }
+
+  if (!activities) {
+    return <p className="text-zinc-500 dark:text-zinc-400">Loading activities…</p>;
+  }
+
+  if (activities.length === 0 || !selectedId) {
+    return <p className="text-zinc-500 dark:text-zinc-400">No Wordle activities configured yet.</p>;
   }
 
   return (
     <div className="flex flex-col items-center gap-6">
       <div className="flex flex-wrap items-center justify-center gap-2">
-        {DIFFICULTIES.map((length) => (
+        {activities.map((activity) => (
           <button
-            key={length}
+            key={activity.id}
             type="button"
-            onClick={() => setDifficulty(length)}
+            onClick={() => setSelectedId(activity.id)}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              difficulty === length
+              selectedId === activity.id
                 ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
                 : "border border-zinc-200 text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
             }`}
           >
-            {length} phonemes
+            {activity.name}
           </button>
         ))}
         <button
@@ -54,7 +74,7 @@ export default function WordleGame() {
         </button>
       </div>
 
-      <WordleHost difficulty={difficulty} round={round} maxGuesses={MAX_GUESSES} targetRef={targetRef} />
+      <WordleHost activityId={selectedId} round={round} optionsRef={optionsRef} />
     </div>
   );
 }
