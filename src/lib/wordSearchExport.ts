@@ -9,8 +9,9 @@ export interface WordSearchMountOptions {
 }
 
 // Same rationale as wordleExport.ts: serialize the exact object the live
-// preview mounted, so the export can never drift from what was on screen.
-export async function generateWordSearchHtml(options: WordSearchMountOptions): Promise<string> {
+// preview mounted, so the export can never drift from what was on screen --
+// isDark carries the same guarantee for appearance.
+export async function generateWordSearchHtml(options: WordSearchMountOptions, isDark: boolean): Promise<string> {
   const engineSrc = await fetch(ENGINE_SRC).then((res) => res.text());
 
   const bodyHtml = `
@@ -27,5 +28,6 @@ window.PhonemeWordSearchEngine.mount(document.getElementById("root"), ${JSON.str
     title: "Word Search · Phoneme Word Games",
     bodyHtml,
     script: `${engineSrc}\n${mountCall}`,
+    isDark,
   });
 }

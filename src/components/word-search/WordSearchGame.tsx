@@ -25,7 +25,8 @@ export default function WordSearchGame() {
   async function handleGenerate() {
     const options = optionsRef.current;
     if (!options) return;
-    const html = await generateWordSearchHtml(options);
+    const isDark = document.documentElement.classList.contains("dark");
+    const html = await generateWordSearchHtml(options, isDark);
     downloadHtmlFile("phoneme-word-search.html", html);
   }
 
