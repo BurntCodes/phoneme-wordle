@@ -25,7 +25,8 @@ export default function WordleGame() {
   async function handleGenerate() {
     const options = optionsRef.current;
     if (!options) return;
-    const html = await generateWordleHtml(options);
+    const isDark = document.documentElement.classList.contains("dark");
+    const html = await generateWordleHtml(options, isDark);
     downloadHtmlFile("phoneme-wordle.html", html);
   }
 

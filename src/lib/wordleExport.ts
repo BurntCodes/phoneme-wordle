@@ -13,7 +13,10 @@ export interface WordleMountOptions {
 // Takes the exact object passed to window.PhonemeWordleEngine.mount() in the
 // live preview and serializes it verbatim — the generated file's data is
 // guaranteed to match what was on screen, not just the engine code.
-export async function generateWordleHtml(options: WordleMountOptions): Promise<string> {
+// `isDark` matches it up visually too: the engine's own CSS already has a
+// dormant `.dark { --pwe-*: ... }` block, so it just needs that class on an
+// ancestor to activate.
+export async function generateWordleHtml(options: WordleMountOptions, isDark: boolean): Promise<string> {
   const engineSrc = await fetch(ENGINE_SRC).then((res) => res.text());
 
   const bodyHtml = `
@@ -30,5 +33,6 @@ window.PhonemeWordleEngine.mount(document.getElementById("root"), ${JSON.stringi
     title: "Wordle · Phoneme Word Games",
     bodyHtml,
     script: `${engineSrc}\n${mountCall}`,
+    isDark,
   });
 }
