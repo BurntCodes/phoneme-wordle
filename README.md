@@ -23,8 +23,8 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 
 
 ## Project structure
 
-- `src/app/` — routes: Home, About, Wordle, Word Search, Settings, plus the `api/` route handlers below
-- `src/components/` — layout (Header/NavBar/Footer), theme toggle, and thin React "host" wrappers for each game
+- `src/app/` — routes: Home, About, Wordle, Word Search, Manage, Settings, plus the `api/` route handlers below
+- `src/components/` — layout (Header/NavBar/Footer), theme toggle, thin React "host" wrappers for each game, and the `manage/` content-management UI
 - `src/lib/api/` — the CRUD API's shared error handling (`errors.ts`) and Zod validation schemas (`validation.ts`), plus the client-side fetch layer (`client.ts`) the game components use
 - `src/lib/` — puzzle-generation and export logic, and `phonemes.ts`/`wordSearch.ts`'s hardcoded corpus, which is now only `prisma/seed.ts`'s source of truth (see below)
 - `public/engines/` — the actual Wordle and Word Search game engines: plain JavaScript, no imports, no build step
@@ -51,7 +51,9 @@ CRUD routes, all under `src/app/api/`:
 | `/api/activities` | GET (`?type=WORDLE\|WORD_SEARCH`), POST | Create validates Wordle vs. Word Search's different required settings |
 | `/api/activities/[id]` | GET, PATCH, DELETE | |
 
-The Wordle and Word Search pages each show a selector over the real activities of that type returned by the API — adding an activity through the CRUD API makes it available to play with no code change.
+The Wordle and Word Search pages each show a selector over the real activities of that type returned by the API — adding an activity makes it available to play with no code change.
+
+Teachers manage word lists, words, and activities through the **Manage** page (in the nav menu) — create/rename/delete word lists, add/edit/delete words (with a click-to-build phoneme picker rather than free text, since IPA symbols aren't typeable on a normal keyboard), and create/edit/delete activities. This drives the same API above; it's not a separate data path.
 
 ## Database (local dev)
 
