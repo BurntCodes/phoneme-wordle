@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "About" };
 
+const YOUTUBE_VIDEO_ID = "Qs3uWPflVEo";
+
 export default function AboutPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-1 flex-col gap-8 px-4 py-12">
@@ -43,13 +45,22 @@ export default function AboutPage() {
         <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
           Walkthrough video
         </h3>
+        <div className="aspect-video w-full overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-800">
+          <iframe
+            src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}`}
+            title="Phoneme Word Games walkthrough video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            className="h-full w-full"
+          />
+        </div>
         <a
-          href="https://youtu.be/Qs3uWPflVEo"
+          href={`https://youtu.be/${YOUTUBE_VIDEO_ID}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-zinc-900 underline underline-offset-2 hover:text-zinc-600 dark:text-zinc-50 dark:hover:text-zinc-300"
+          className="text-sm text-zinc-500 underline underline-offset-2 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
         >
-          Watch the walkthrough on YouTube
+          Open on YouTube
         </a>
       </section>
 
