@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import WordSearchHost from "./WordSearchHost";
-import { fetchActivities, type ApiActivity } from "@/lib/api/client";
+import { fetchActivities, reportGeneration, type ApiActivity } from "@/lib/api/client";
 import { generateWordSearchHtml, type WordSearchMountOptions } from "@/lib/wordSearchExport";
 import { downloadHtmlFile } from "@/lib/htmlExport";
 
@@ -24,10 +24,20 @@ export default function WordSearchGame() {
 
   async function handleGenerate() {
     const options = optionsRef.current;
-    if (!options) return;
+    if (!options || !selectedId) return;
     const isDark = document.documentElement.classList.contains("dark");
-    const html = await generateWordSearchHtml(options, isDark);
-    downloadHtmlFile("phoneme-word-search.html", html);
+    try {
+      const html = await generateWordSearchHtml(options, isDark);
+      downloadHtmlFile("phoneme-word-search.html", html);
+      reportGeneration({ activityType: "WORD_SEARCH", activityId: selectedId, success: true });
+    } catch (err) {
+      reportGeneration({
+        activityType: "WORD_SEARCH",
+        activityId: selectedId,
+        success: false,
+        failureReason: err instanceof Error ? err.message : "HTML export failed",
+      });
+    }
   }
 
   if (loadError) {
