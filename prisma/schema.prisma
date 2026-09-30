@@ -97,8 +97,36 @@ model Activity {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
-  wordList WordList @relation(fields: [wordListId], references: [id], onDelete: Restrict)
+  wordList         WordList          @relation(fields: [wordListId], references: [id], onDelete: Restrict)
+  generationEvents GenerationEvent[]
 
   @@index([wordListId])
   @@index([type])
+}
+
+// activityId is nullable with SetNull so deleting an activity keeps its
+// history in the reporting totals instead of silently shrinking them.
+model GenerationEvent {
+  id            String       @id @default(cuid())
+  activityType  ActivityType
+  activityId    String?
+  success       Boolean
+  failureReason String?
+  createdAt     DateTime     @default(now())
+
+  activity Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
+
+  @@index([activityType, success])
+  @@index([createdAt])
+}
+
+model PageView {
+  id           String        @id @default(cuid())
+  path         String
+  activityType ActivityType?
+  durationMs   Int
+  createdAt    DateTime      @default(now())
+
+  @@index([activityType])
+  @@index([createdAt])
 }
