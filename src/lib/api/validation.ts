@@ -53,3 +53,10 @@ export const activityUpdateSchema = z.object({
   gridCols: z.number().int().positive().nullable().optional(),
   hintsEnabled: z.boolean().optional(),
 });
+
+export const generationEventSchema = z.object({
+  activityType: z.enum(["WORDLE", "WORD_SEARCH"]),
+  activityId: z.string().trim().min(1).nullish(),
+  success: z.boolean(),
+  failureReason: z.string().trim().max(500).nullish(),
+});
