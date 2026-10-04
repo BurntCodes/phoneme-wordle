@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { loadEngineScript } from "@/lib/loadEngineScript";
-import { fetchActivity, fetchWordList, fetchPhonemes, orderedPhonemes } from "@/lib/api/client";
+import { fetchActivity, fetchWordList, fetchPhonemes, orderedPhonemes, reportGeneration } from "@/lib/api/client";
 import { buildKeyboardRows } from "@/lib/phonemeShape";
 import type { WordleMountOptions } from "@/lib/wordleExport";
 
@@ -61,8 +61,12 @@ export default function WordleHost({
 
         optionsRef.current = options;
         handle = window.PhonemeWordleEngine.mount(containerRef.current, options);
+        reportGeneration({ activityType: "WORDLE", activityId, success: true });
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load activity");
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : "Failed to load activity";
+        setError(message);
+        reportGeneration({ activityType: "WORDLE", activityId, success: false, failureReason: message });
       }
     })();
 

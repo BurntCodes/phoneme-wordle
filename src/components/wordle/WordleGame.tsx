@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import WordleHost from "./WordleHost";
-import { fetchActivities, type ApiActivity } from "@/lib/api/client";
+import { fetchActivities, reportGeneration, type ApiActivity } from "@/lib/api/client";
 import { generateWordleHtml, type WordleMountOptions } from "@/lib/wordleExport";
 import { downloadHtmlFile } from "@/lib/htmlExport";
 
@@ -24,10 +24,20 @@ export default function WordleGame() {
 
   async function handleGenerate() {
     const options = optionsRef.current;
-    if (!options) return;
+    if (!options || !selectedId) return;
     const isDark = document.documentElement.classList.contains("dark");
-    const html = await generateWordleHtml(options, isDark);
-    downloadHtmlFile("phoneme-wordle.html", html);
+    try {
+      const html = await generateWordleHtml(options, isDark);
+      downloadHtmlFile("phoneme-wordle.html", html);
+      reportGeneration({ activityType: "WORDLE", activityId: selectedId, success: true });
+    } catch (err) {
+      reportGeneration({
+        activityType: "WORDLE",
+        activityId: selectedId,
+        success: false,
+        failureReason: err instanceof Error ? err.message : "HTML export failed",
+      });
+    }
   }
 
   if (loadError) {

@@ -146,3 +146,14 @@ export function fetchPhonemes(): Promise<ApiPhoneme[]> {
 export function orderedPhonemes(word: ApiWord): string[] {
   return [...word.phonemes].sort((a, b) => a.position - b.position).map((p) => p.phonemeSymbol);
 }
+
+// Telemetry must never break the activity the user is actually using, so
+// failures to report are swallowed rather than surfaced.
+export function reportGeneration(event: {
+  activityType: "WORDLE" | "WORD_SEARCH";
+  activityId: string;
+  success: boolean;
+  failureReason?: string;
+}): void {
+  fetch("/api/telemetry/generation", jsonInit("POST", event)).catch(() => {});
+}
