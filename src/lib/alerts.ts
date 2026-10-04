@@ -19,7 +19,8 @@ function quotedList(names: string[]): string {
 }
 
 // The rate alerts need a minimum sample: a single early failure is 100%
-// and would raise a false alarm on a fresh install.
+// and would raise a false alarm on a fresh install. With the database down a
+// zero count means "unknown", not "unused", so the no-activity notice is withheld.
 export function evaluateAlerts(stats: AlertInputs, issues: DataIssues): DashboardAlert[] {
   const alerts: DashboardAlert[] = [];
 
@@ -56,7 +57,7 @@ export function evaluateAlerts(stats: AlertInputs, issues: DataIssues): Dashboar
     });
   }
 
-  if (total === 0) {
+  if (total === 0 && stats.health.database === "up") {
     alerts.push({
       severity: "info",
       code: "NO_GENERATION_ACTIVITY",
