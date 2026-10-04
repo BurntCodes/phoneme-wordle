@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import Header from "@/components/layout/Header";
 import NavBar from "@/components/layout/NavBar";
 import Footer from "@/components/layout/Footer";
+import PageViewTracker from "@/components/telemetry/PageViewTracker";
 import { THEME_COOKIE } from "@/lib/theme";
 import "./globals.css";
 
@@ -40,6 +41,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <NavBar />
         <main className="flex flex-1 flex-col">{children}</main>
         <Footer />
+        <PageViewTracker />
       </body>
     </html>
   );

@@ -60,3 +60,11 @@ export const generationEventSchema = z.object({
   success: z.boolean(),
   failureReason: z.string().trim().max(500).nullish(),
 });
+
+const MAX_PAGE_VIEW_MS = 24 * 60 * 60 * 1000;
+
+export const pageViewSchema = z.object({
+  path: z.string().trim().min(1).max(200).startsWith("/"),
+  activityType: z.enum(["WORDLE", "WORD_SEARCH"]).nullish(),
+  durationMs: z.number().finite().min(0).max(MAX_PAGE_VIEW_MS),
+});
