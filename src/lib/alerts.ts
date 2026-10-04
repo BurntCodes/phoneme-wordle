@@ -1,4 +1,9 @@
-import type { DashboardAlert, DashboardStats } from "@/lib/dashboardTypes";
+import type { DashboardAlert } from "@/lib/dashboardTypes";
+
+export interface AlertInputs {
+  health: { database: "up" | "down" };
+  generation: { total: number; failed: number };
+}
 
 export interface DataIssues {
   emptyWordLists: string[];
@@ -15,10 +20,7 @@ function quotedList(names: string[]): string {
 
 // The rate alerts need a minimum sample: a single early failure is 100%
 // and would raise a false alarm on a fresh install.
-export function evaluateAlerts(
-  stats: Pick<DashboardStats, "health" | "generation">,
-  issues: DataIssues,
-): DashboardAlert[] {
+export function evaluateAlerts(stats: AlertInputs, issues: DataIssues): DashboardAlert[] {
   const alerts: DashboardAlert[] = [];
 
   if (stats.health.database === "down") {
