@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import type { DataIssues } from "@/lib/alerts";
 import type { ActivityTypeKey, DashboardStats, GenerationCounts, RecentFailure } from "@/lib/dashboardTypes";
 
 const RECENT_FAILURE_LIMIT = 5;
@@ -67,5 +68,27 @@ export async function loadStoredStats(): Promise<StoredStats> {
     },
     mostUsedActivityType,
     recentFailures,
+  };
+}
+
+export async function loadDataIssues(): Promise<DataIssues> {
+  const [emptyLists, wordleActivities] = await Promise.all([
+    db.wordList.findMany({ where: { words: { none: {} } }, select: { name: true }, orderBy: { name: "asc" } }),
+    db.activity.findMany({
+      where: { type: "WORDLE" },
+      orderBy: { name: "asc" },
+      select: {
+        name: true,
+        difficulty: true,
+        wordList: { select: { words: { select: { _count: { select: { phonemes: true } } } } } },
+      },
+    }),
+  ]);
+
+  return {
+    emptyWordLists: emptyLists.map((list) => list.name),
+    unplayableWordleActivities: wordleActivities
+      .filter((a) => !a.wordList.words.some((w) => w._count.phonemes === a.difficulty))
+      .map((a) => a.name),
   };
 }
