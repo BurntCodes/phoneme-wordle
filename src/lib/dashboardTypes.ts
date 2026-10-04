@@ -43,3 +43,12 @@ export interface DashboardStats {
   recentFailures: RecentFailure[];
   alerts: DashboardAlert[];
 }
+
+export interface DashboardUnavailable {
+  health: { status: "error"; database: "down"; message?: string };
+  alerts: DashboardAlert[];
+}
+
+export type DashboardResult =
+  | { available: true; stats: DashboardStats }
+  | { available: false; unavailable: DashboardUnavailable };

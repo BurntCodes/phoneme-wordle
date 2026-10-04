@@ -1,3 +1,5 @@
+import type { DashboardResult, DashboardStats, DashboardUnavailable } from "@/lib/dashboardTypes";
+
 export interface ApiPhoneme {
   symbol: string;
   letters: string;
@@ -156,4 +158,15 @@ export function reportGeneration(event: {
   failureReason?: string;
 }): void {
   fetch("/api/telemetry/generation", jsonInit("POST", event)).catch(() => {});
+}
+
+// The stats route answers 503 with a usable body when the database is down,
+// so that case is a result for the dashboard to render, not an exception.
+export async function fetchDashboardStats(): Promise<DashboardResult> {
+  const res = await fetch("/api/dashboard/stats", { cache: "no-store" });
+  if (res.status === 503) {
+    return { available: false, unavailable: (await res.json()) as DashboardUnavailable };
+  }
+  if (!res.ok) throw new Error(`Request to /api/dashboard/stats failed with status ${res.status}`);
+  return { available: true, stats: (await res.json()) as DashboardStats };
 }
