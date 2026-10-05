@@ -2,7 +2,7 @@
 
 A builder for phoneme-based Wordle and Word Search classroom activities, aimed at Speech Pathology students and teachers. Teachers manage word lists and activity settings, which drive both the live preview and a "Generate HTML" button that produces a standalone HTML file playable in any browser — no server, no dependencies, at the point it's actually played.
 
-Built for CSE3CWA. Assessment 1 delivered the frontend-only builder; Assessment 2 added the backend, database, and Docker layer — word lists and activity settings are now stored and managed through a real API instead of being hardcoded into the frontend.
+Built for CSE3CWA. Word lists and activity settings are stored in PostgreSQL and managed through a real API and the Manage page, and a live Dashboard reports health, usage and generation statistics.
 
 ## Getting started
 
