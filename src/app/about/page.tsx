@@ -19,10 +19,10 @@ export default function AboutPage() {
           plays in any web browser.
         </p>
         <p className="text-zinc-600 dark:text-zinc-400">
-          <strong>Assessment 1 is frontend only.</strong> This stage focuses
-          on the builder&apos;s interface, usability, and responsive design.
-          A database and dynamic word-list management are introduced in
-          later assessments.
+          Word lists, phoneme data and activity settings are stored in a
+          PostgreSQL database and managed on the Manage page. The Dashboard
+          shows live health, usage and generation statistics for the whole
+          system.
         </p>
       </section>
 
@@ -32,12 +32,13 @@ export default function AboutPage() {
         </h3>
         <ul className="list-disc space-y-2 pl-5 text-zinc-600 dark:text-zinc-400">
           <li>
-            <strong>Wordle</strong> — a phoneme-based guessing game, built
-            around a single target word for this assessment.
+            <strong>Wordle</strong> — a phoneme-based guessing game. Each
+            round picks a word from the chosen word list that matches the
+            activity&apos;s phoneme count.
           </li>
           <li>
             <strong>Word Search</strong> — a phoneme-based word search built
-            from a small fixed word list.
+            from the words in the chosen word list.
           </li>
         </ul>
       </section>

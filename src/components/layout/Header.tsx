@@ -6,7 +6,7 @@ export default function Header() {
           Phoneme Word Games
         </h1>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          CSE3CWA — Assessment 1: Frontend design and usability
+          Phoneme-based Wordle and Word Search builder
         </p>
       </div>
     </header>
