@@ -8,6 +8,7 @@ const PRIMARY_LINKS = [
   { href: "/", label: "Home" },
   { href: "/wordle", label: "Wordle" },
   { href: "/word-search", label: "Word Search" },
+  { href: "/dashboard", label: "Dashboard" },
 ];
 
 const MENU_LINKS = [
