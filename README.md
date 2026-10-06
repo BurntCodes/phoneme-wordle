@@ -27,6 +27,7 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 
 - `src/components/` — layout (Header/NavBar/Footer), theme toggle, thin React "host" wrappers for each game, and the `manage/` content-management UI
 - `src/lib/api/` — the CRUD API's shared error handling (`errors.ts`) and Zod validation schemas (`validation.ts`), plus the client-side fetch layer (`client.ts`) the game components use
 - `src/lib/` — puzzle-generation and export logic, and `phonemes.ts`/`wordSearch.ts`'s hardcoded corpus, which is now only `prisma/seed.ts`'s source of truth (see below)
+- `e2e/` — Playwright end-to-end tests (see below)
 - `public/engines/` — the actual Wordle and Word Search game engines: plain JavaScript, no imports, no build step
 - `prisma/` — the database schema, migrations, and seed script
 
@@ -79,6 +80,24 @@ npm run db:seed
 ```
 
 The app is then reachable at [http://localhost:3000](http://localhost:3000) (override with `APP_PORT` in `.env` if that port is taken, the same way `POSTGRES_PORT` overrides Postgres's).
+
+## End-to-end tests
+
+Playwright tests drive the real app in Chromium against the real database, so Postgres must be running and seeded (see Getting started).
+
+```bash
+npx playwright install chromium   # first time only
+npm run test:e2e                  # starts the dev server on port 3100 if one is not already running
+npm run test:e2e:report           # opens the HTML report of the last run
+```
+
+| Spec | What it proves |
+| --- | --- |
+| `e2e/builder.spec.ts` | A teacher creates, edits, renames and deletes a word list, its words and a Wordle activity through the Manage page |
+| `e2e/activities.spec.ts` | A player wins a Wordle round, an incomplete guess is rejected, Word Search renders a full grid, and both "Generate HTML" exports open as standalone playable files |
+| `e2e/observability.spec.ts` | Both health endpoints return 200, generation and page-time events are recorded and shown on the Dashboard, and unplayable activities and empty word lists raise alerts |
+
+The tests create their own word lists and activities, prefixed `E2E `, and remove everything with that prefix before and after each test, so leftovers from a crashed run are swept up. Because they use the real UI, they also record genuine generation and page-view events. Set `E2E_PORT` to use another port, or `E2E_BASE_URL` (for example `http://localhost:3010`) to test an app that is already running, such as the Docker container.
 
 ## Building
 
