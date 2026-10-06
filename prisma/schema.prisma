@@ -112,6 +112,7 @@ model GenerationEvent {
   activityId    String?
   success       Boolean
   failureReason String?
+  simulated     Boolean      @default(false)
   createdAt     DateTime     @default(now())
 
   activity Activity? @relation(fields: [activityId], references: [id], onDelete: SetNull)
@@ -125,6 +126,7 @@ model PageView {
   path         String
   activityType ActivityType?
   durationMs   Int
+  simulated    Boolean       @default(false)
   createdAt    DateTime      @default(now())
 
   @@index([activityType])

@@ -61,8 +61,11 @@ Teachers manage word lists, words, and activities through the **Manage** page (i
 npm run db:up      # starts Postgres via Docker Compose
 npm run db:migrate  # applies the Prisma schema
 npm run db:seed     # populates it with the current word/phoneme data
+npm run db:simulate # optional: fills the dashboard with simulated usage history
 npm run db:studio   # optional: browse the database at http://localhost:5555
 ```
+
+`npm run db:simulate` inserts simulated generation events and page views spread over the last 14 days, tied to the activities that exist, so the Dashboard has history to report on without hours of manual use. Pass `-- --count=500 --days=30` to change the size and window. Every simulated row is flagged `simulated`, so re-running replaces the previous simulation and `npm run db:simulate:clear` removes it, leaving real usage records untouched. The generator is seeded, so the same options produce the same figures every time. Run `npm run db:seed` first — activities are needed to attach events to.
 
 ## Running with Docker
 

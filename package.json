@@ -12,6 +12,8 @@
     "db:down": "docker compose down",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
+    "db:simulate": "tsx prisma/simulate.ts",
+    "db:simulate:clear": "tsx prisma/simulate.ts --clear",
     "db:studio": "prisma studio"
   },
   "engines": {
