@@ -55,5 +55,11 @@ export async function createPlayableActivities(request: APIRequestContext) {
     gridCols: SEARCH_SIZE,
   });
 
-  return { wordleName, searchName };
+  return { wordleName, searchName, wordListId: wordList.id as string };
+}
+
+export async function getStats(request: APIRequestContext) {
+  const response = await request.get("/api/dashboard/stats");
+  expect(response.ok()).toBeTruthy();
+  return response.json();
 }
