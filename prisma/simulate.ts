@@ -13,9 +13,11 @@ const WORDLE_SHARE = 0.6;
 const FAILURE_RATE = 0.08;
 const PAGE_VIEWS_PER_EVENT = 2;
 
+// Generic transport-level failures only: a reason naming a specific word list
+// would contradict the stored data on the dashboard.
 const FAILURE_REASONS: Record<ActivityType, string[]> = {
-  WORDLE: ['No words with 5 phonemes in "Full Phoneme Corpus"', "Failed to load activity"],
-  WORD_SEARCH: ['"Word Search Demo List" has no words', "Failed to load activity"],
+  WORDLE: ["Failed to load activity", "Request to /api/word-lists failed with status 500"],
+  WORD_SEARCH: ["Failed to load activity", "Request to /api/phonemes failed with status 503"],
 };
 
 interface PagePattern {
