@@ -28,6 +28,7 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 
 - `src/lib/api/` — the CRUD API's shared error handling (`errors.ts`) and Zod validation schemas (`validation.ts`), plus the client-side fetch layer (`client.ts`) the game components use
 - `src/lib/` — puzzle-generation and export logic, and `phonemes.ts`/`wordSearch.ts`'s hardcoded corpus, which is now only `prisma/seed.ts`'s source of truth (see below)
 - `e2e/` — Playwright end-to-end tests (see below)
+- `load-tests/` — JMeter load test plan, staged runner and results summary (see below)
 - `public/engines/` — the actual Wordle and Word Search game engines: plain JavaScript, no imports, no build step
 - `prisma/` — the database schema, migrations, and seed script
 
@@ -98,6 +99,56 @@ npm run test:e2e:report           # opens the HTML report of the last run
 | `e2e/observability.spec.ts` | Both health endpoints return 200, generation and page-time events are recorded and shown on the Dashboard, and unplayable activities and empty word lists raise alerts |
 
 The tests create their own word lists and activities, prefixed `E2E `, and remove everything with that prefix before and after each test, so leftovers from a crashed run are swept up. Because they use the real UI, they also record genuine generation and page-view events. Set `E2E_PORT` to use another port, or `E2E_BASE_URL` (for example `http://localhost:3010`) to test an app that is already running, such as the Docker container.
+
+## Load testing
+
+An [Apache JMeter](https://jmeter.apache.org/) plan (`load-tests/phoneme-wordle.jmx`) exercises the builder and the generated-activity workflow at five staged levels. JMeter is free (Apache License 2.0) and needs Java 8 or newer; `run.sh` looks for it on `PATH`, in `JMETER_HOME`, or in `~/tools/apache-jmeter-*`.
+
+Test the production container, not `npm run dev`: start it with `docker compose up -d` (the app listens on `http://localhost:3010`) and make sure the database is seeded.
+
+```bash
+load-tests/run.sh                    # all five stages, about 7 minutes
+load-tests/run.sh x10 x100           # chosen stages only
+DURATION=20 load-tests/run.sh x10    # a quick 20-second run
+node load-tests/summarize.mjs        # reprint the comparison table
+```
+
+Each stage writes `load-tests/results/<stage>/` (gitignored) containing the raw samples and a full JMeter dashboard at `report/index.html`. Set `HOST` and `PORT` to target another server.
+
+| Stage | Virtual users | Total time (including ramp-up) |
+| --- | ---: | --- |
+| x1 | 1 | 60 s (1 s ramp-up) |
+| x10 | 10 | 60 s (5 s ramp-up) |
+| x100 | 100 | 60 s (10 s ramp-up) |
+| x1000 | 1,000 | 90 s (30 s ramp-up) |
+| x10000 | 10,000 | 120 s (60 s ramp-up) |
+
+Every virtual user repeatedly runs one of two workflows, chosen at random each time, pausing 0.5–1.5 s between requests, and every request must return a 2xx status:
+
+| Workflow | Share of iterations | Requests |
+| --- | ---: | --- |
+| Player (Wordle or Word Search) | about 90% | open the page, list the activities, load one activity, its word list and the phonemes, then record the generation and the time on the page |
+| Teacher | about 10% | list word lists, create a list, add two words, rename it, create and edit an activity, check the dashboard statistics, then delete the activity and the list |
+
+Players never pick the transient activities teacher users create, since those are deleted moments later. After each stage the runner deletes any `LOAD ` word lists and activities, and the telemetry rows written since that stage began, so the dashboard returns to how it was (`CLEANUP=0` keeps them).
+
+### Sample results
+
+One run on a 16-core desktop with JMeter, the app container and PostgreSQL all on the same machine:
+
+| Stage | Users | Requests | Errors | Mean (ms) | Median (ms) | 95th (ms) | 99th (ms) | Max (ms) | Throughput (req/s) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| x1 | 1 | 64 | 0.00% | 11 | 9 | 22 | 23 | 23 | 1.1 |
+| x10 | 10 | 559 | 0.00% | 9 | 7 | 16 | 19 | 25 | 9.5 |
+| x100 | 100 | 5,424 | 0.00% | 6 | 5 | 12 | 16 | 26 | 91.5 |
+| x1000 | 1,000 | 73,613 | 0.00% | 16 | 12 | 66 | 145 | 406 | 821.9 |
+| x10000 | 10,000 | 98,268 | 0.34% | 8,689 | 13,858 | 22,219 | 25,527 | 30,031 | 761.7 |
+
+- **x1 to x100:** response times stay in single or low double-digit milliseconds with no errors, and throughput grows in step with the number of users, because most of each user's time is spent pausing.
+- **x1000:** still no errors, but the 99th percentile has risen to 145 ms and throughput is close to its ceiling.
+- **x10000:** throughput does not grow (762 requests per second against 822 at x1000), so the extra users simply queue. The median response takes 13.9 s, 87% of requests take over a second, and 38,701 take over ten. The 334 errors are 314 read timeouts at the 30 s limit, 16 dropped connections and 4 follow-on 404s, so the 0.34% error rate understates how unusable the app is at this level.
+- **What limits it:** sampling CPU during a near-saturation run showed the app's Node.js process at about 100–107% of one core, which is a fully busy single thread, while PostgreSQL used about 35–39% of one core, JMeter 15–25%, so the application process, not the database or the load generator, is the limit. The dashboard statistics request, which runs several aggregate queries, is the slowest request under load (95th percentile 111 ms at x1000 and 29.8 s at x10000).
+- **What would raise the ceiling:** running several app instances behind a load balancer, caching the fixed phoneme list, and precomputing the dashboard totals. None of these is implemented.
 
 ## Building
 
