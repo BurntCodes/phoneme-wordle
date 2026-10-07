@@ -32,6 +32,7 @@ export interface DashboardStats {
     total: number;
     successful: number;
     failed: number;
+    failedLast24h: number;
     successRate: number | null;
     byType: Record<ActivityTypeKey, GenerationCounts>;
   };

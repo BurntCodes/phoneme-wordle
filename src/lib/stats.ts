@@ -3,6 +3,7 @@ import type { DataIssues } from "@/lib/alerts";
 import type { ActivityTypeKey, DashboardStats, GenerationCounts, RecentFailure } from "@/lib/dashboardTypes";
 
 const RECENT_FAILURE_LIMIT = 5;
+const RECENT_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 const ACTIVITY_TYPES: ActivityTypeKey[] = ["WORDLE", "WORD_SEARCH"];
 
@@ -13,7 +14,7 @@ function emptyByType<T>(make: () => T): Record<ActivityTypeKey, T> {
 export type StoredStats = Omit<DashboardStats, "health" | "alerts">;
 
 export async function loadStoredStats(): Promise<StoredStats> {
-  const [wordLists, words, phonemes, activityGroups, generationGroups, pageViewAgg, failureRows] =
+  const [wordLists, words, phonemes, activityGroups, generationGroups, pageViewAgg, failureRows, failedLast24h] =
     await Promise.all([
       db.wordList.count(),
       db.word.count(),
@@ -26,6 +27,9 @@ export async function loadStoredStats(): Promise<StoredStats> {
         orderBy: { createdAt: "desc" },
         take: RECENT_FAILURE_LIMIT,
         select: { activityType: true, failureReason: true, createdAt: true },
+      }),
+      db.generationEvent.count({
+        where: { success: false, createdAt: { gte: new Date(Date.now() - RECENT_WINDOW_MS) } },
       }),
     ]);
 
@@ -61,7 +65,7 @@ export async function loadStoredStats(): Promise<StoredStats> {
       activities: activitiesByType.WORDLE + activitiesByType.WORD_SEARCH,
       activitiesByType,
     },
-    generation: { total, successful, failed, successRate: total > 0 ? successful / total : null, byType },
+    generation: { total, successful, failed, failedLast24h, successRate: total > 0 ? successful / total : null, byType },
     pageViews: {
       total: pageViewAgg._count._all,
       averageDurationMs: pageViewAgg._avg.durationMs === null ? null : Math.round(pageViewAgg._avg.durationMs),
