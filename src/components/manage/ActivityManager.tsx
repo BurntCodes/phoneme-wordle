@@ -166,12 +166,13 @@ export default function ActivityManager() {
       </ul>
 
       <form onSubmit={handleSubmit} className="space-y-3 rounded-md border border-zinc-200 p-3 dark:border-zinc-700">
-        <h4 className="font-medium text-zinc-900 dark:text-zinc-50">{editingId ? "Edit activity" : "New activity"}</h4>
+        <h3 className="font-medium text-zinc-900 dark:text-zinc-50">{editingId ? "Edit activity" : "New activity"}</h3>
 
         <input
           value={form.name}
           onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           placeholder="Activity name"
+          aria-label="Activity name"
           className={`${inputClass} w-full`}
           required
         />
@@ -180,6 +181,7 @@ export default function ActivityManager() {
           <select
             value={form.type}
             disabled={!!editingId}
+            aria-label="Activity type"
             onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as FormState["type"] }))}
             className={inputClass}
           >
@@ -189,6 +191,7 @@ export default function ActivityManager() {
 
           <select
             value={form.wordListId}
+            aria-label="Word list"
             onChange={(e) => setForm((f) => ({ ...f, wordListId: e.target.value }))}
             className={inputClass}
             required
