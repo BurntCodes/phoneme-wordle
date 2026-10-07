@@ -78,6 +78,7 @@ test("an unplayable Wordle activity fails visibly, is counted, and raises a warn
 
   await page.goto("/dashboard");
   const alerts = page.getByRole("region", { name: "Alerts" });
+  await expect(alerts).toContainText("generation failure");
   await expect(alerts).toContainText("Wordle activities with no word matching their phoneme count");
   await expect(alerts).toContainText(unplayableName);
   await expect(page.getByRole("region", { name: "Recent failures" })).toContainText("No words with 9 phonemes");
