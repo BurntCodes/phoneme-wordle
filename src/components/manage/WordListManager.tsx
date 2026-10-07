@@ -175,6 +175,7 @@ export default function WordListManager() {
           value={newListName}
           onChange={(e) => setNewListName(e.target.value)}
           placeholder="New word list name"
+          aria-label="New word list name"
           className={`${inputClass} flex-1`}
           required
         />
@@ -192,6 +193,7 @@ export default function WordListManager() {
                   <input
                     value={renameValue}
                     onChange={(e) => setRenameValue(e.target.value)}
+                    aria-label="Word list name"
                     className={`${inputClass} flex-1`}
                   />
                   <button type="button" onClick={() => handleRename(list.id)} className={primaryButtonClass}>
@@ -244,6 +246,7 @@ export default function WordListManager() {
                               <input
                                 value={editText}
                                 onChange={(e) => setEditText(e.target.value)}
+                                aria-label="Word text"
                                 className={inputClass}
                               />
                               <PhonemePicker phonemes={phonemes} value={editPhonemes} onChange={setEditPhonemes} />
@@ -302,6 +305,7 @@ export default function WordListManager() {
                         value={newWordText}
                         onChange={(e) => setNewWordText(e.target.value)}
                         placeholder="Word"
+                        aria-label="Word text"
                         className={inputClass}
                         required
                       />
