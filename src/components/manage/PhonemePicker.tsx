@@ -22,7 +22,7 @@ export default function PhonemePicker({
     <div className="space-y-3">
       <div className="flex min-h-10 flex-wrap items-center gap-1 rounded-md border border-zinc-200 p-2 dark:border-zinc-700">
         {value.length === 0 && (
-          <span className="text-sm text-zinc-400 dark:text-zinc-500">No phonemes selected</span>
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">No phonemes selected</span>
         )}
         {value.map((symbol, index) => (
           <button
