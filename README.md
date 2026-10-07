@@ -23,7 +23,7 @@ Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 
 
 ## Project structure
 
-- `src/app/` — routes: Home, About, Wordle, Word Search, Manage, Settings, plus the `api/` route handlers below
+- `src/app/` — routes: Home, About, Wordle, Word Search, Manage, Dashboard, Settings, plus the `health` route and the `api/` route handlers below
 - `src/components/` — layout (Header/NavBar/Footer), theme toggle, thin React "host" wrappers for each game, and the `manage/` content-management UI
 - `src/lib/api/` — the CRUD API's shared error handling (`errors.ts`) and Zod validation schemas (`validation.ts`), plus the client-side fetch layer (`client.ts`) the game components use
 - `src/lib/` — puzzle-generation and export logic, and `phonemes.ts`/`wordSearch.ts`'s hardcoded corpus, which is now only `prisma/seed.ts`'s source of truth (see below)
@@ -40,11 +40,11 @@ The "Generate HTML" button has to produce a single, fully standalone `.html` fil
 
 Word lists, their words' ordered phoneme sequences, the fixed 43-symbol phoneme reference inventory, and activity configurations (Wordle/Word Search settings — difficulty, max guesses, grid size, hints) are modeled in `prisma/schema.prisma` and backed by PostgreSQL. See the schema file and `prisma/seed.ts` for the full shape.
 
-CRUD routes, all under `src/app/api/`:
+Routes under `src/app/api/` (plus `/health`):
 
 | Route | Methods | Notes |
 | --- | --- | --- |
-| `/api/health` | GET | Real DB connectivity check, not a static 200 |
+| `/health`, `/api/health` | GET | Real DB connectivity check, not a static 200 (503 when the database is down) |
 | `/api/phonemes` | GET | Read-only — the phoneme inventory is fixed reference data |
 | `/api/word-lists` | GET, POST | |
 | `/api/word-lists/[id]` | GET, PATCH, DELETE | Delete is rejected (409) if an Activity still references the list |
@@ -52,10 +52,24 @@ CRUD routes, all under `src/app/api/`:
 | `/api/words/[id]` | PATCH, DELETE | |
 | `/api/activities` | GET (`?type=WORDLE\|WORD_SEARCH`), POST | Create validates Wordle vs. Word Search's different required settings |
 | `/api/activities/[id]` | GET, PATCH, DELETE | |
+| `/api/telemetry/generation` | POST | Records whether building or exporting an activity succeeded or failed, and why |
+| `/api/telemetry/page-view` | POST | Records how long a page was visible |
+| `/api/dashboard/stats` | GET | Aggregated statistics, health and alerts for the Dashboard |
 
 The Wordle and Word Search pages each show a selector over the real activities of that type returned by the API — adding an activity makes it available to play with no code change.
 
 Teachers manage word lists, words, and activities through the **Manage** page (in the nav menu) — create/rename/delete word lists, add/edit/delete words (with a click-to-build phoneme picker rather than free text, since IPA symbols aren't typeable on a normal keyboard), and create/edit/delete activities. This drives the same API above; it's not a separate data path.
+
+## Dashboard and observability
+
+The **Dashboard** page (`/dashboard`) shows how the system is being used and whether it is healthy, refreshing every 10 seconds. The data flows in four steps:
+
+1. **Record.** When a Wordle or Word Search is built, or exported with "Generate HTML", the page posts a success or failure (with the reason) to `/api/telemetry/generation`. A small tracker in the root layout posts how long each page was visible to `/api/telemetry/page-view`, ignoring views under half a second.
+2. **Store.** These become `GenerationEvent` and `PageView` rows in PostgreSQL. Rows created by `npm run db:simulate` carry a `simulated` flag, so they can be replaced or removed without touching real usage.
+3. **Aggregate.** `/api/dashboard/stats` counts activities by type, successful and failed generations, the success rate, the average time on a page and the most-used activity type, and lists the most recent failures.
+4. **Alert.** The same endpoint evaluates warnings: a failure rate of 20% or more (an error from 50%, once there are at least ten attempts), word lists with no words, Wordle activities with no word of the right phoneme count, and an error with an unavailable view when the database is unreachable.
+
+The Dashboard also summarises the stored word lists and activity configurations, so what a teacher builds on the Manage page and how it is used appear in one place.
 
 ## Database (local dev)
 
