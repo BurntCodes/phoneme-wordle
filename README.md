@@ -150,6 +150,8 @@ One run on a 16-core desktop with JMeter, the app container and PostgreSQL all o
 - **What limits it:** sampling CPU during a near-saturation run showed the app's Node.js process at about 100–107% of one core, which is a fully busy single thread, while PostgreSQL used about 35–39% of one core, JMeter 15–25%, so the application process, not the database or the load generator, is the limit. The dashboard statistics request, which runs several aggregate queries, is the slowest request under load (95th percentile 111 ms at x1000 and 29.8 s at x10000).
 - **What would raise the ceiling:** running several app instances behind a load balancer, caching the fixed phoneme list, and precomputing the dashboard totals. None of these is implemented.
 
+A repeat run gave the same shape: 823 requests per second at x1000 and 754 at x10000, with the x10000 error rate at 0.75% instead of 0.34%, because the number of requests that hit the 30 s timeout varies from run to run.
+
 ## Building
 
 ```bash
