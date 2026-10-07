@@ -12,7 +12,7 @@ export async function GET() {
     const health = await checkDatabaseHealth();
     if (!health.ok) {
       const alerts = evaluateAlerts(
-        { health: health.status, generation: { total: 0, failed: 0 } },
+        { health: health.status, generation: { total: 0, failed: 0, failedLast24h: 0 } },
         { emptyWordLists: [], unplayableWordleActivities: [] },
       );
       return NextResponse.json({ health: health.status, alerts }, { status: 503 });

@@ -67,7 +67,7 @@ The **Dashboard** page (`/dashboard`) shows how the system is being used and whe
 1. **Record.** When a Wordle or Word Search is built, or exported with "Generate HTML", the page posts a success or failure (with the reason) to `/api/telemetry/generation`. A small tracker in the root layout posts how long each page was visible to `/api/telemetry/page-view`, ignoring views under half a second.
 2. **Store.** These become `GenerationEvent` and `PageView` rows in PostgreSQL. Rows created by `npm run db:simulate` carry a `simulated` flag, so they can be replaced or removed without touching real usage.
 3. **Aggregate.** `/api/dashboard/stats` counts activities by type, successful and failed generations, the success rate, the average time on a page and the most-used activity type, and lists the most recent failures.
-4. **Alert.** The same endpoint evaluates warnings: a failure rate of 20% or more (an error from 50%, once there are at least ten attempts), word lists with no words, Wordle activities with no word of the right phoneme count, and an error with an unavailable view when the database is unreachable.
+4. **Alert.** The same endpoint evaluates warnings: any generation failure in the last 24 hours, a failure rate of 20% or more (an error from 50%, once there are at least ten attempts), word lists with no words, Wordle activities with no word of the right phoneme count, and an error with an unavailable view when the database is unreachable.
 
 The Dashboard also summarises the stored word lists and activity configurations, so what a teacher builds on the Manage page and how it is used appear in one place.
 

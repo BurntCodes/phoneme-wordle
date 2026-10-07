@@ -2,7 +2,7 @@ import type { DashboardAlert } from "@/lib/dashboardTypes";
 
 export interface AlertInputs {
   health: { database: "up" | "down" };
-  generation: { total: number; failed: number };
+  generation: { total: number; failed: number; failedLast24h: number };
 }
 
 export interface DataIssues {
@@ -39,6 +39,15 @@ export function evaluateAlerts(stats: AlertInputs, issues: DataIssues): Dashboar
         message: `${percent}% of generation attempts have failed (${failed} of ${total}).`,
       });
     }
+  }
+
+  if (stats.generation.failedLast24h > 0) {
+    const count = stats.generation.failedLast24h;
+    alerts.push({
+      severity: "warning",
+      code: "RECENT_FAILURES",
+      message: `${count} generation ${count === 1 ? "failure" : "failures"} in the last 24 hours.`,
+    });
   }
 
   if (issues.emptyWordLists.length > 0) {
