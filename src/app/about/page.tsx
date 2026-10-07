@@ -4,6 +4,7 @@ export const metadata: Metadata = { title: "About" };
 
 const ASSESSMENT_1_VIDEO_ID = "Qs3uWPflVEo";
 const ASSESSMENT_2_VIDEO_ID = "WpGmHJBKQwk";
+const ASSESSMENT_3_VIDEO_ID = "jOpwOtRiZ1k";
 
 export default function AboutPage() {
   return (
@@ -81,6 +82,29 @@ export default function AboutPage() {
         </div>
         <a
           href={`https://youtu.be/${ASSESSMENT_2_VIDEO_ID}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-zinc-500 underline underline-offset-2 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+        >
+          Open on YouTube
+        </a>
+      </section>
+
+      <section className="space-y-3">
+        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
+          Assessment 3 walkthrough video
+        </h3>
+        <div className="aspect-video w-full overflow-hidden rounded-md border border-zinc-200 dark:border-zinc-800">
+          <iframe
+            src={`https://www.youtube.com/embed/${ASSESSMENT_3_VIDEO_ID}`}
+            title="Phoneme Word Games — Assessment 3 walkthrough video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+            className="h-full w-full"
+          />
+        </div>
+        <a
+          href={`https://youtu.be/${ASSESSMENT_3_VIDEO_ID}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm text-zinc-500 underline underline-offset-2 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
