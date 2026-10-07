@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Usage: load-tests/run.sh [stage ...]   stages: x1 x10 x100 x1000 x10000 (default: all, in order)
-# Env:   HOST, PORT (default localhost:3010), DURATION (seconds, overrides every stage),
+# Env:   HOST, PORT (default localhost:3010), DURATION (total seconds incl. ramp-up, overrides every stage),
 #        HEAP_MAX (JMeter heap, default 8g), CLEANUP=0 to keep the data the run creates,
 #        JMETER_HOME / JAVA_HOME if JMeter and Java are not on PATH.
 set -euo pipefail
@@ -93,7 +93,7 @@ for stage in "${STAGES[@]}"; do
   mkdir -p "$out"
 
   echo
-  echo "=== ${stage}: ${users} virtual users, ${rampup}s ramp-up, ${duration}s steady (${BASE_URL}) ==="
+  echo "=== ${stage}: ${users} virtual users, ${duration}s in total including a ${rampup}s ramp-up (${BASE_URL}) ==="
   started_at="$(db_sql "select to_char(clock_timestamp() at time zone 'utc', 'YYYY-MM-DD HH24:MI:SS.MS')" || true)"
 
   "$JMETER" -n -t phoneme-wordle.jmx \
